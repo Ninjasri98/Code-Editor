@@ -8,12 +8,15 @@ import { RotateCcwIcon, ShareIcon, TypeIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useClerk } from '@clerk/nextjs';
 import { Editor } from '@monaco-editor/react';
+import useMounted from '@/hooks/useMounted';
+import { EditorPanelSkeleton } from './EditorPanelSkeleton';
 
 function EditorPanel() {
-
+  const clerk = useClerk();
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { language, theme, fontSize, editor, setFontSize, setEditor } = useCodeEditorStore();
-  const clerk = useClerk();
+
+  const mounted = useMounted();
 
   useEffect(() => {
     const savedCode = localStorage.getItem(`editor-code-${language}`);
@@ -26,13 +29,24 @@ function EditorPanel() {
     if (savedFontSize) setFontSize(parseInt(savedFontSize));
   }, [setFontSize]);
 
-  const handleRefresh = () => { };
+  const handleRefresh = () => {
+    const defaultCode = LANGUAGE_CONFIG[language].defaultCode;
+    if (editor) editor.setValue(defaultCode);
+    localStorage.removeItem(`editor-code-${language}`);
+  };
 
-  const handleEditorChange = () => {
+  const handleEditorChange = (value: string | undefined) => {
+    if (value) localStorage.setItem(`editor-code-${language}`, value);
+  };
 
-  }
+  const handleFontSizeChange = (newSize: number) => {
+    const size = Math.min(Math.max(newSize, 12), 24);
+    setFontSize(size);
+    localStorage.setItem("editor-font-size", size.toString());
+  };
 
-  const handleFontSizeChange = (newSize: number) => { }
+  if (!mounted) return null;
+
   return (
     <div className="relative">
       <div className="relative bg-[#12121a]/90 backdrop-blur rounded-xl border border-white/[0.05] p-6">
@@ -84,47 +98,47 @@ function EditorPanel() {
               <ShareIcon className="size-4 text-white" />
               <span className="text-sm font-medium text-white ">Share</span>
             </motion.button>
-            <div className="relative group rounded-xl overflow-hidden ring-1 ring-white/[0.05]">
-            {clerk.loaded && (
-              <Editor
-                height="600px"
-                language={LANGUAGE_CONFIG[language].monacoLanguage}
-                onChange={handleEditorChange}
-                theme={theme}
-                beforeMount={defineMonacoThemes}
-                onMount={(editor) => setEditor(editor)}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize,
-                  automaticLayout: true,
-                  scrollBeyondLastLine: false,
-                  padding: { top: 16, bottom: 16 },
-                  renderWhitespace: "selection",
-                  fontFamily: '"Fira Code", "Cascadia Code", Consolas, monospace',
-                  fontLigatures: true,
-                  cursorBlinking: "smooth",
-                  smoothScrolling: true,
-                  contextmenu: true,
-                  renderLineHighlight: "all",
-                  lineHeight: 1.6,
-                  letterSpacing: 0.5,
-                  roundedSelection: true,
-                  scrollbar: {
-                    verticalScrollbarSize: 8,
-                    horizontalScrollbarSize: 8,
-                  },
-                }}
-              />
-            )}
-
-            {!clerk.loaded && <EditorPanelSkeleton />}
           </div>
         </div>
+
+        <div className="relative group rounded-xl overflow-hidden ring-1 ring-white/[0.05]">
+          {clerk.loaded && (
+            <Editor
+              height="600px"
+              language={LANGUAGE_CONFIG[language].monacoLanguage}
+              onChange={handleEditorChange}
+              theme={theme}
+              beforeMount={defineMonacoThemes}
+              onMount={(editor) => setEditor(editor)}
+              options={{
+                minimap: { enabled: false },
+                fontSize,
+                automaticLayout: true,
+                scrollBeyondLastLine: false,
+                padding: { top: 16, bottom: 16 },
+                renderWhitespace: "selection",
+                fontFamily: '"Fira Code", "Cascadia Code", Consolas, monospace',
+                fontLigatures: true,
+                cursorBlinking: "smooth",
+                smoothScrolling: true,
+                contextmenu: true,
+                renderLineHighlight: "all",
+                lineHeight: 1.6,
+                letterSpacing: 0.5,
+                roundedSelection: true,
+                scrollbar: {
+                  verticalScrollbarSize: 8,
+                  horizontalScrollbarSize: 8,
+                },
+              }}
+            />
+          )}
+
+          {!clerk.loaded && <EditorPanelSkeleton />}
+        </div>
       </div>
-
+      
     </div>
-    </div >
-  )
+  );
 }
-
-export default EditorPanel
+export default EditorPanel;

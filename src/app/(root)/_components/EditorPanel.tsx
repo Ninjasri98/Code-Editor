@@ -2,15 +2,18 @@
 
 import { useCodeEditorStore } from '@/store/useCodeEditorStore';
 import React, { useEffect, useState } from 'react'
-import { LANGUAGE_CONFIG } from '../_constants';
+import { defineMonacoThemes, LANGUAGE_CONFIG } from '../_constants';
 import { motion } from 'framer-motion';
 import { RotateCcwIcon, ShareIcon, TypeIcon } from 'lucide-react';
 import Image from 'next/image';
+import { useClerk } from '@clerk/nextjs';
+import { Editor } from '@monaco-editor/react';
 
 function EditorPanel() {
 
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { language, theme, fontSize, editor, setFontSize, setEditor } = useCodeEditorStore();
+  const clerk = useClerk();
 
   useEffect(() => {
     const savedCode = localStorage.getItem(`editor-code-${language}`);
@@ -29,7 +32,7 @@ function EditorPanel() {
 
   }
 
-  const handleFontSizeChange = (newSize : number) => { }
+  const handleFontSizeChange = (newSize: number) => { }
   return (
     <div className="relative">
       <div className="relative bg-[#12121a]/90 backdrop-blur rounded-xl border border-white/[0.05] p-6">
@@ -81,11 +84,46 @@ function EditorPanel() {
               <ShareIcon className="size-4 text-white" />
               <span className="text-sm font-medium text-white ">Share</span>
             </motion.button>
+            <div className="relative group rounded-xl overflow-hidden ring-1 ring-white/[0.05]">
+            {clerk.loaded && (
+              <Editor
+                height="600px"
+                language={LANGUAGE_CONFIG[language].monacoLanguage}
+                onChange={handleEditorChange}
+                theme={theme}
+                beforeMount={defineMonacoThemes}
+                onMount={(editor) => setEditor(editor)}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize,
+                  automaticLayout: true,
+                  scrollBeyondLastLine: false,
+                  padding: { top: 16, bottom: 16 },
+                  renderWhitespace: "selection",
+                  fontFamily: '"Fira Code", "Cascadia Code", Consolas, monospace',
+                  fontLigatures: true,
+                  cursorBlinking: "smooth",
+                  smoothScrolling: true,
+                  contextmenu: true,
+                  renderLineHighlight: "all",
+                  lineHeight: 1.6,
+                  letterSpacing: 0.5,
+                  roundedSelection: true,
+                  scrollbar: {
+                    verticalScrollbarSize: 8,
+                    horizontalScrollbarSize: 8,
+                  },
+                }}
+              />
+            )}
+
+            {!clerk.loaded && <EditorPanelSkeleton />}
           </div>
         </div>
-
       </div>
+
     </div>
+    </div >
   )
 }
 

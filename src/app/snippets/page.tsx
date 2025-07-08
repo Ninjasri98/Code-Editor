@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import NavigationHeader from "@/components/NavigationHeader";

@@ -1,3 +1,5 @@
+"use client";
+
 import { Clock, Code, MessageSquare, User } from "lucide-react";
 import CopyButton from "./_components/CopyButton";
 import SnippetLoadingSkeleton from "./_components/SnippetLoadingSkeleton";

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function UpgradeButton() {
   const CHECKOUT_URL =
-    ""
+    "https://lemonlogic.lemonsqueezy.com/buy/e2f1ab11-47cf-429f-8ab5-097a3e914b5d"
 
   return (
     <Link
